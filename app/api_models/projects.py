@@ -6,6 +6,7 @@ from datetime import datetime
 class ProjectCreate(BaseModel):
     name: str
     description: Optional[str] = None
+    kanban_board_id: int
 
 
 class ProjectResponse(ProjectCreate):
