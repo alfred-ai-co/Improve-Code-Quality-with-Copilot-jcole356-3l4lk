@@ -38,6 +38,9 @@ class Ticket(Base):
 
 
 class KanbanBoard(Base):
+    """
+    Represents a Kanban Board which contains multiple projects and statuses.
+    """
     __tablename__ = "kanban_boards"
     
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -46,10 +49,14 @@ class KanbanBoard(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
+    # Relationships
     projects = relationship('Project', back_populates='kanban_board')
     statuses = relationship('KanbanStatus', back_populates='kanban_board')
 
 class KanbanStatus(Base):
+    """
+    Represents a status within a Kanban Board, such as 'To Do', 'In Progress', or 'Done'.
+    """
     __tablename__ = "kanban_statuses"
     
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -59,6 +66,6 @@ class KanbanStatus(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
     
+    # Relationships
     kanban_board = relationship('KanbanBoard', back_populates='statuses')
     tickets = relationship('Ticket', back_populates='kanban_status')
-
