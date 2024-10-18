@@ -28,4 +28,3 @@ class DBInterface():
         self.db.delete(item)
         self.db.commit()
         return item
-  
