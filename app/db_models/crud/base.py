@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
 from abc import ABC, abstractmethod
+
+from app.db_models.crud.db import DBInterface
 from app.db_models.base import *
 
 
@@ -33,26 +35,19 @@ class BaseCRUD(CRUDInterface):
     
     def create(self, **kwargs):
         item = self.model(**kwargs)
-        self.db.add(item)
-        self.db.commit()
-        self.db.refresh(item)
-        return item
+        return DBInterface(self.db,self.model).create(item)
 
     def get(self, id: int):
-        return self.db.query(self.model).filter(self.model.id == id).first()
+        return DBInterface(self.db,self.model).get(id)
 
     def get_all(self):
-        return self.db.query(self.model).all()
+        return DBInterface(self.db,self.model).get_all()
 
     def update(self, id: int, **kwargs):
         item = self.get(id)
         for key, value in kwargs.items():
             setattr(item, key, value)
-        self.db.commit()
-        self.db.refresh(item)
-        return item
+        return DBInterface(self.db,self.model).update(item)
 
     def delete(self, id: int):
-        item = self.get(id)
-        self.db.delete(item)
-        self.db.commit()
+        return DBInterface(self.db,self.model).delete(id)
