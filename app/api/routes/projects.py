@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException
 from sqlalchemy.orm import Session
 from fastapi import Depends
 
-from app.db_models.crud.base import ProjectCRUD
+from app.db_models.crud.project import ProjectCRUD
 from app.api_models.projects import ProjectCreate, ProjectResponse
 from app.api.dependencies.sqldb import get_db
 
@@ -44,4 +44,3 @@ def delete_project(id: int, db: Session = Depends(get_db)):
     project_crud = ProjectCRUD(db)
     project_crud.delete(id)
     return {"message": "Project deleted successfully"}
-
