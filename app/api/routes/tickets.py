@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from sqlalchemy.orm import Session
 from fastapi import Depends
 
-from app.db_models.crud import TicketCRUD
+from app.db_models.crud.ticket import TicketCRUD
 from app.api_models.tickets import TicketCreate, TicketResponse
 from app.api.dependencies.sqldb import get_db
 
@@ -43,4 +43,3 @@ async def delete_ticket(id: int, db: Session = Depends(get_db)):
     ticket_crud = TicketCRUD(db)
     ticket_crud.delete(id)
     return {"message": "Ticket deleted successfully"}
-

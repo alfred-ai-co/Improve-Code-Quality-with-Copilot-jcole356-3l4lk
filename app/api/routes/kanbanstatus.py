@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from sqlalchemy.orm import Session
 from fastapi import Depends
 
-from app.db_models.crud import KanbanStatusCRUD
+from app.db_models.crud.kanbanstatus import KanbanStatusCRUD
 from app.api_models.kanbanstatus import KanbanStatusCreate, KanbanStatusResponse
 from app.api.dependencies.sqldb import get_db
 
@@ -43,4 +43,3 @@ def delete_kanban_status(id: int, db: Session = Depends(get_db)):
     kanban_status_crud = KanbanStatusCRUD(db)
     kanban_status_crud.delete(id)
     return {"message": "Kanban Status deleted successfully"}
-
