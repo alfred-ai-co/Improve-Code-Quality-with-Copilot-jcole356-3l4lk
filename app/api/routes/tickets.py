@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from sqlalchemy.orm import Session
 from fastapi import Depends
 
-from app.db_models.crud import TicketCRUD
+from app.db_models.crud.base import TicketCRUD
 from app.api_models.tickets import TicketCreate, TicketResponse
 from app.api.dependencies.sqldb import get_db
 
