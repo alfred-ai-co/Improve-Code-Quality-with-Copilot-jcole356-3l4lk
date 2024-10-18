@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.db_models.kanban_board import KanbanBoard
+from app.db_models.kanbanboard import KanbanBoard
 from app.db_models.crud.base import BaseCRUD
 
 class KanbanBoardCRUD(BaseCRUD):

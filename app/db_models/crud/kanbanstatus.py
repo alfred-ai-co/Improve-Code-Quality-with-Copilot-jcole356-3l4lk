@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.db_models.kanban_status import KanbanStatus
+from app.db_models.kanbanstatus import KanbanStatus
 from app.db_models.crud.base import BaseCRUD
 
 class KanbanStatusCRUD(BaseCRUD):
