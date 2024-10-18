@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from sqlalchemy.orm import Session
 from fastapi import Depends
 
-from app.db_models.crud import KanbanStatusCRUD
+from app.db_models.crud.base import KanbanStatusCRUD
 from app.api_models.kanbanstatus import KanbanStatusCreate, KanbanStatusResponse
 from app.api.dependencies.sqldb import get_db
 

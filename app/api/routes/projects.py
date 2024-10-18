@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException
 from sqlalchemy.orm import Session
 from fastapi import Depends
 
-from app.db_models.crud import ProjectCRUD
+from app.db_models.crud.base import ProjectCRUD
 from app.api_models.projects import ProjectCreate, ProjectResponse
 from app.api.dependencies.sqldb import get_db
 
