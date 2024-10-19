@@ -1,6 +1,7 @@
 # from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError, NoResultFound
+from sqlalchemy.orm.exc import StaleDataError
 from sqlalchemy.future import select
 from abc import ABC, abstractmethod
 import logging
@@ -78,11 +79,16 @@ class BaseCRUD(CRUDInterface):
             item = await self.get(id)
             for key, value in kwargs.items():
                 setattr(item, key, value)
+            item.version += 1
             await self.db.commit()
             await self.db.refresh(item)
             return item
         except ItemNotFoundException:
             raise
+        except StaleDataError:
+            await self.db.rollback()
+            logger.error(f"Optimistic lock error updating item with id {id}")
+            raise DatabaseException("Optimistic lock error updating item.")
         except SQLAlchemyError as e:
             self.db.rollback()
             logger.error(f"Error updating item: {e}")
