@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 import logging
 
 from app.db_models.base import *
+from app.api_models.kanbanboard import KanbanBoardCreate, KanbanBoardUpdate
+from app.api_models.kanbanstatus import KanbanStatusCreate, KanbanStatusUpdate
 from app.api_models.projects import ProjectCreate
 from app.api_models.tickets import TicketCreate
 from app.api.errors.exceptions import ItemNotFoundException, DatabaseException
@@ -140,8 +142,8 @@ class KanbanBoardCRUD(BaseCRUD):
     def __init__(self, db: Session):
         super().__init__(db, KanbanBoard)
         
-    def create(self, name: str, description: str):
-        return super().create(name=name, description=description)
+    def create(self, kandbanboard: KanbanBoardCreate):
+        return super().create(**kandbanboard.model_dump())
     
     def get(self, id: int):
         return super().get(id)
@@ -149,8 +151,8 @@ class KanbanBoardCRUD(BaseCRUD):
     def get_all(self):
         return super().get_all()
     
-    def update(self, id: int, name: str, description: str) -> KanbanBoard:
-        return super().update(id, name=name, description=description)
+    def update(self, id: int, kanbanboard: KanbanBoardUpdate) -> KanbanBoard:
+        return super().update(id, **kanbanboard.model_dump())
     
     def delete(self, id: int) -> None:
         return super().delete(id)
@@ -160,8 +162,8 @@ class KanbanStatusCRUD(BaseCRUD):
     def __init__(self, db: Session):
         super().__init__(db, KanbanStatus)
     
-    def create(self, name: str, description: str, board_id: int):
-        return super().create(name=name, description=description, board_id=board_id)
+    def create(self, kanbanstatus: KanbanStatusCreate):
+        return super().create(**kanbanstatus.model_dump())
     
     def get(self, id: int):
         return super().get(id)
@@ -169,8 +171,8 @@ class KanbanStatusCRUD(BaseCRUD):
     def get_all(self):
         return super().get_all()
     
-    def update(self, id: int, name: str, description: str, board_id: int):
-        return super().update(id, name=name, description=description, board_id=board_id)
+    def update(self, id: int, kanbanstatus: KanbanStatusUpdate):
+        return super().update(id, **kanbanstatus.model_dump())
     
     def delete(self, id: int):
         return super().delete(id)
