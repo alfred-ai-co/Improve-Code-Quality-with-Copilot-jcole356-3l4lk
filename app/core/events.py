@@ -39,18 +39,15 @@ def create_start_app_handler(app: FastAPI) -> Callable:
     async def start_app() -> None:
         settings = app.state.settings
         logger.info(f"Starting [{settings.app_env.value}] Application")
+
         # Start up Events
         load_dotenv(find_dotenv())
         
         # Create tables
-        # Base.metadata.create_all(bind=engine)
-
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
             await conn.run_sync(Base.metadata.create_all)
 
-        # asyncio.run(init_models())
-        
         # Create a new session
         session = get_db()
         
