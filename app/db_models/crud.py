@@ -1,7 +1,20 @@
-from sqlalchemy.orm import Session
+# from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import SQLAlchemyError, NoResultFound
+from sqlalchemy.orm.exc import StaleDataError
+from sqlalchemy.future import select
 from abc import ABC, abstractmethod
-from app.db_models.base import *
+import logging
 
+from app.db_models.base import *
+from app.api.errors.http_error import HTTPException
+from app.api_models.kanbanboard import KanbanBoardCreate, KanbanBoardUpdate
+from app.api_models.kanbanstatus import KanbanStatusCreate, KanbanStatusUpdate
+from app.api_models.projects import ProjectCreate
+from app.api_models.tickets import TicketCreate
+from app.api.errors.exceptions import ItemNotFoundException, DatabaseException
+
+logger = logging.getLogger(__name__)
 
 class CRUDInterface(ABC):
     @abstractmethod
@@ -27,112 +40,148 @@ class CRUDInterface(ABC):
 
 class BaseCRUD(CRUDInterface):
     """Base CRUD class for all models"""
-    def __init__(self, db: Session, model=None):
+    def __init__(self, db: AsyncSession, model=None):
         self.db = db
         self.model = model
     
-    def create(self, **kwargs):
-        item = self.model(**kwargs)
-        self.db.add(item)
-        self.db.commit()
-        self.db.refresh(item)
-        return item
+    async def create(self, **kwargs):
+        try:
+            item = self.model(**kwargs)
+            self.db.add(item)
+            await self.db.commit()
+            await self.db.refresh(item)
+            return item
+        except SQLAlchemyError as e:
+            await self.db.rollback()
+            logger.error(f"Error creating item: {e}")
+            raise DatabaseException("Error creating item.")
 
-    def get(self, id: int):
-        return self.db.query(self.model).filter(self.model.id == id).first()
+    async def get(self, id: int):
+        try:
+            result = await self.db.execute(select(self.model).filter(self.model.id == id).with_for_update())
+            return result.scalars().first()
+        except NoResultFound:
+            raise HTTPException(status_code=404, detail=f"Item with id {id} not found.")
+        except SQLAlchemyError as e:
+            logger.error(f"Error retrieving item: {e}")
+            raise DatabaseException("Error retrieving item.")
 
-    def get_all(self):
-        return self.db.query(self.model).all()
+    async def get_all(self):
+        try:
+            result = await self.db.execute(select(self.model))
+            return result.scalars().all()
+        except SQLAlchemyError as e:
+            logger.error(f"Error retrieving items: {e}")
+            raise DatabaseException("Error retrieving items.")
 
-    def update(self, id: int, **kwargs):
-        item = self.get(id)
-        for key, value in kwargs.items():
-            setattr(item, key, value)
-        self.db.commit()
-        self.db.refresh(item)
-        return item
+    async def update(self, id: int, **kwargs):
+        try:
+            item = await self.get(id)
+            for key, value in kwargs.items():
+                setattr(item, key, value)
+            item.version += 1
+            await self.db.commit()
+            await self.db.refresh(item)
+            return item
+        except ItemNotFoundException:
+            raise
+        except StaleDataError:
+            await self.db.rollback()
+            logger.error(f"Optimistic lock error updating item with id {id}")
+            raise DatabaseException("Optimistic lock error updating item.")
+        except SQLAlchemyError as e:
+            self.db.rollback()
+            logger.error(f"Error updating item: {e}")
+            raise DatabaseException("Error updating item.")
 
-    def delete(self, id: int):
-        item = self.get(id)
-        self.db.delete(item)
-        self.db.commit()
+    async def delete(self, id: int):
+        try:
+            item = await self.get(id)
+            await self.db.delete(item)
+            await self.db.commit()
+        except ItemNotFoundException:
+            raise
+        except SQLAlchemyError as e:
+            await self.db.rollback()
+            logger.error(f"Error deleting item: {e}")
+            raise DatabaseException("Error deleting item.")
 
 
 class ProjectCRUD(BaseCRUD):
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         super().__init__(db, Project)
     
-    def create(self, name: str, description: str):
-        return super().create(name=name, description=description)
+    async def create(self, project: ProjectCreate):
+        return await super().create(**project.model_dump())
     
-    def get(self, id: int):
-        return super().get(id)
+    async def get(self, id: int):
+        return await super().get(id)
     
-    def get_all(self):
-        return super().get_all()
+    async def get_all(self):
+        return await super().get_all()
     
-    def update(self, id: int, name: str, description: str):
-        return super().update(id, name=name, description=description)
+    async def update(self, id: int, project: ProjectCreate):
+        return await super().update(id, **project.model_dump())
     
-    def delete(self, id: int):
-        return super().delete(id)
+    async def delete(self, id: int):
+        return await super().delete(id)
 
 
 class TicketCRUD(BaseCRUD):
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         super().__init__(db, Ticket)
     
-    def create(self, project_id: int, title: str, description: str, status: str, priority: str):
-        return super().create(project_id=project_id, title=title, description=description, status=status, priority=priority)
+    async def create(self, ticket: TicketCreate):
+        return await super().create(**ticket.model_dump())
     
-    def get(self, id: int):
-        return super().get(id)
+    async def get(self, id: int):
+        return await super().get(id)
     
-    def get_all(self):
-        return super().get_all()
+    async def get_all(self):
+        return await super().get_all()
     
-    def update(self, id: int, project_id: int, title: str, description: str, status: str, priority: str):
-        return super().update(id, project_id=project_id, title=title, description=description, status=status, priority=priority)
+    async def update(self, id: int, ticket: TicketCreate):
+        return await super().update(id, **ticket.model_dump())
     
-    def delete(self, id: int):
-        return super().delete(id)
+    async def delete(self, id: int):
+        return await super().delete(id)
 
 
 class KanbanBoardCRUD(BaseCRUD):
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         super().__init__(db, KanbanBoard)
         
-    def create(self, name: str, description: str):
-        return super().create(name=name, description=description)
+    async def create(self, kanbanboard: KanbanBoardCreate):
+        return await super().create(**kanbanboard.model_dump())
     
-    def get(self, id: int):
-        return super().get(id)
+    async def get(self, id: int):
+        return await super().get(id)
     
-    def get_all(self):
-        return super().get_all()
+    async def get_all(self):
+        return await super().get_all()
     
-    def update(self, id: int, name: str, description: str) -> KanbanBoard:
-        return super().update(id, name=name, description=description)
+    async def update(self, id: int, kanbanboard: KanbanBoardUpdate):
+        return await super().update(id, **kanbanboard.model_dump())
     
-    def delete(self, id: int) -> None:
-        return super().delete(id)
+    async def delete(self, id: int):
+        return await super().delete(id)
 
 
 class KanbanStatusCRUD(BaseCRUD):
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         super().__init__(db, KanbanStatus)
     
-    def create(self, name: str, description: str, board_id: int):
-        return super().create(name=name, description=description, board_id=board_id)
+    async def create(self, kanbanstatus: KanbanStatusCreate):
+        return await super().create(**kanbanstatus.model_dump())
     
-    def get(self, id: int):
-        return super().get(id)
+    async def get(self, id: int):
+        return await super().get(id)
     
-    def get_all(self):
-        return super().get_all()
+    async def get_all(self):
+        return await super().get_all()
     
-    def update(self, id: int, name: str, description: str, board_id: int):
-        return super().update(id, name=name, description=description, board_id=board_id)
+    async def update(self, id: int, kanbanstatus: KanbanStatusUpdate):
+        return await super().update(id, **kanbanstatus.model_dump())
     
-    def delete(self, id: int):
-        return super().delete(id)
+    async def delete(self, id: int):
+        return await super().delete(id)

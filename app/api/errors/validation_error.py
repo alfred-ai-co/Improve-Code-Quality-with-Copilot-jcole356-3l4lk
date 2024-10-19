@@ -1,3 +1,4 @@
+import logging
 from pydantic import BaseModel
 from typing import Any
 from loguru import logger
@@ -5,6 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+logger = logging.getLogger("app")
 
 class ErrorResponse(BaseModel):
     """Base Model for error responses"""
@@ -23,10 +25,11 @@ async def http422_error_handler(_: Request, exc: RequestValidationError):
         message = error['msg']
         error_detail = f"Error in field '{field}': {message}"
         errors.append(error_detail)
-        logger.error(error_detail)  # Log the error details
+        # Log the error details
+        logger.error(f"Validation error occurred: {error_detail}")
 
     error_response = ErrorResponse(status=422, message=errors)
     return JSONResponse(
         status_code=422,
-        message=error_response.model_dump()
+        content=error_response.model_dump()
     )

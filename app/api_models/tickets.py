@@ -9,7 +9,7 @@ class TicketCreate(BaseModel):
     description: str
     status: str
     priority: str
-
+    kanban_status_id: int
 
 class TicketResponse(TicketCreate):
     id: int

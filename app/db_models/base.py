@@ -16,6 +16,7 @@ class Project(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
     kanban_board_id = Column(Integer, ForeignKey("kanban_boards.id"), nullable=False)
+    version = Column(Integer, nullable=False, default=1)
     
     kanban_board = relationship("KanbanBoard", back_populates="projects")
     tickets = relationship("Ticket", back_populates="project")
@@ -32,6 +33,7 @@ class Ticket(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
     kanban_status_id = Column(Integer, ForeignKey("kanban_statuses.id"), nullable=False)
+    version = Column(Integer, nullable=False, default=1)
     
     project = relationship("Project", back_populates="tickets")
     kanban_status = relationship('KanbanStatus', back_populates='tickets')
@@ -45,6 +47,7 @@ class KanbanBoard(Base):
     description = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    version = Column(Integer, nullable=False, default=1)
 
     projects = relationship('Project', back_populates='kanban_board')
     statuses = relationship('KanbanStatus', back_populates='kanban_board')
@@ -58,6 +61,7 @@ class KanbanStatus(Base):
     board_id = Column(Integer, ForeignKey("kanban_boards.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    version = Column(Integer, nullable=False, default=1)
     
     kanban_board = relationship('KanbanBoard', back_populates='statuses')
     tickets = relationship('Ticket', back_populates='kanban_status')
