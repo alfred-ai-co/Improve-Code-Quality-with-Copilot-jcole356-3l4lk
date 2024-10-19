@@ -165,17 +165,17 @@ class KanbanStatusCRUD(BaseCRUD):
     def __init__(self, db: AsyncSession):
         super().__init__(db, KanbanStatus)
     
-    def create(self, kanbanstatus: KanbanStatusCreate):
-        return super().create(**kanbanstatus.model_dump())
+    async def create(self, kanbanstatus: KanbanStatusCreate):
+        return await super().create(**kanbanstatus.model_dump())
     
-    def get(self, id: int):
-        return super().get(id)
+    async def get(self, id: int):
+        return await super().get(id)
     
-    def get_all(self):
-        return super().get_all()
+    async def get_all(self):
+        return await super().get_all()
     
-    def update(self, id: int, kanbanstatus: KanbanStatusUpdate):
-        return super().update(id, **kanbanstatus.model_dump())
+    async def update(self, id: int, kanbanstatus: KanbanStatusUpdate):
+        return await super().update(id, **kanbanstatus.model_dump())
     
-    def delete(self, id: int):
-        return super().delete(id)
+    async def delete(self, id: int):
+        return await super().delete(id)
