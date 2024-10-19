@@ -1,11 +1,13 @@
 import logging
 from types import FrameType
 from typing import cast
-
 from loguru import logger
+
+from app.core.settings.logging_config import configure_logging
 
 class InterceptHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:
+        configure_logging()
         # Get corresponding Loguru level if it exists
         try:
             level = logger.level(record.levelname).name
