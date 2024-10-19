@@ -1,7 +1,12 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError, NoResultFound
 from abc import ABC, abstractmethod
-from app.db_models.base import *
+import logging
 
+from app.db_models.base import *
+from app.api.errors.exceptions import ItemNotFoundException, DatabaseException
+
+logger = logging.getLogger(__name__)
 
 class CRUDInterface(ABC):
     @abstractmethod
@@ -32,30 +37,61 @@ class BaseCRUD(CRUDInterface):
         self.model = model
     
     def create(self, **kwargs):
-        item = self.model(**kwargs)
-        self.db.add(item)
-        self.db.commit()
-        self.db.refresh(item)
-        return item
+        try:
+            item = self.model(**kwargs)
+            self.db.add(item)
+            self.db.commit()
+            self.db.refresh(item)
+            return item
+        except SQLAlchemyError as e:
+            self.db.rollback()
+            logger.error(f"Error creating item: {e}")
+            raise DatabaseException("Error creating item.")
 
     def get(self, id: int):
-        return self.db.query(self.model).filter(self.model.id == id).first()
+        try:
+            item = self.db.query(self.model).filter(self.model.id == id).one()
+            return item
+        except NoResultFound:
+            logger.error(f"Item with id {id} not found.")
+            raise ItemNotFoundException(id)
+        except SQLAlchemyError as e:
+            logger.error(f"Error retrieving item: {e}")
+            raise DatabaseException("Error retrieving item.")
 
     def get_all(self):
-        return self.db.query(self.model).all()
+        try:
+            return self.db.query(self.model).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Error retrieving items: {e}")
+            raise DatabaseException("Error retrieving items.")
 
     def update(self, id: int, **kwargs):
-        item = self.get(id)
-        for key, value in kwargs.items():
-            setattr(item, key, value)
-        self.db.commit()
-        self.db.refresh(item)
-        return item
+        try:
+            item = self.get(id)
+            for key, value in kwargs.items():
+                setattr(item, key, value)
+            self.db.commit()
+            self.db.refresh(item)
+            return item
+        except ItemNotFoundException:
+            raise
+        except SQLAlchemyError as e:
+            self.db.rollback()
+            logger.error(f"Error updating item: {e}")
+            raise DatabaseException("Error updating item.")
 
     def delete(self, id: int):
-        item = self.get(id)
-        self.db.delete(item)
-        self.db.commit()
+        try:
+            item = self.get(id)
+            self.db.delete(item)
+            self.db.commit()
+        except ItemNotFoundException:
+            raise
+        except SQLAlchemyError as e:
+            self.db.rollback()
+            logger.error(f"Error deleting item: {e}")
+            raise DatabaseException("Error deleting item.")
 
 
 class ProjectCRUD(BaseCRUD):
