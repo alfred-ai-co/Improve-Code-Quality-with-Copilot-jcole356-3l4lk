@@ -14,7 +14,7 @@ router = APIRouter()
 @router.post("/", status_code=201, response_model=ProjectResponse)
 def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
     project_crud = ProjectCRUD(db)
-    return project_crud.create(**project.model_dump())
+    return project_crud.create(project)
 
 
 @router.get("/", status_code=200, response_model=list[ProjectResponse])
@@ -35,7 +35,7 @@ def get_project(id: int, db: Session = Depends(get_db)):
 @router.put("/{id}", status_code=200, response_model=ProjectResponse)
 def update_project(id: int, project: ProjectCreate, db: Session = Depends(get_db)):
     project_crud = ProjectCRUD(db)
-    project_crud.update(id, **project.model_dump())
+    project_crud.update(id, project)
     return project_crud.get(id)
 
 

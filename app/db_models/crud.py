@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 import logging
 
 from app.db_models.base import *
+from app.api_models.projects import ProjectCreate
 from app.api_models.tickets import TicketCreate
 from app.api.errors.exceptions import ItemNotFoundException, DatabaseException
 
@@ -99,8 +100,8 @@ class ProjectCRUD(BaseCRUD):
     def __init__(self, db: Session):
         super().__init__(db, Project)
     
-    def create(self, name: str, description: str, kanban_board_id: int):
-        return super().create(name=name, description=description, kanban_board_id=kanban_board_id)
+    def create(self, project: ProjectCreate):
+        return super().create(**project.model_dump())
     
     def get(self, id: int):
         return super().get(id)
@@ -108,8 +109,8 @@ class ProjectCRUD(BaseCRUD):
     def get_all(self):
         return super().get_all()
     
-    def update(self, id: int, name: str, description: str, kanban_board_id: int):
-        return super().update(id, name=name, description=description, kanban_board_id=kanban_board_id)
+    def update(self, id: int, project: ProjectCreate):
+        return super().update(id, **project.model_dump())
     
     def delete(self, id: int):
         return super().delete(id)
