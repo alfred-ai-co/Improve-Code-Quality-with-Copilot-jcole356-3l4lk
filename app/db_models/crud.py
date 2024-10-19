@@ -43,22 +43,22 @@ class BaseCRUD(CRUDInterface):
         self.db = db
         self.model = model
     
-    def create(self, **kwargs):
+    async def create(self, **kwargs):
         try:
             item = self.model(**kwargs)
             self.db.add(item)
-            self.db.commit()
-            self.db.refresh(item)
+            await self.db.commit()
+            await self.db.refresh(item)
             return item
         except SQLAlchemyError as e:
-            self.db.rollback()
+            await self.db.rollback()
             logger.error(f"Error creating item: {e}")
             raise DatabaseException("Error creating item.")
 
-    def get(self, id: int):
+    async def get(self, id: int):
         try:
-            item = self.db.query(self.model).filter(self.model.id == id).one()
-            return item
+            result = await self.db.execute(select(self.model).filter(self.model.id == id))
+            return result.scalars().first()
         except NoResultFound:
             raise HTTPException(status_code=404, detail=f"Item with id {id} not found.")
         except SQLAlchemyError as e:
@@ -73,13 +73,13 @@ class BaseCRUD(CRUDInterface):
             logger.error(f"Error retrieving items: {e}")
             raise DatabaseException("Error retrieving items.")
 
-    def update(self, id: int, **kwargs):
+    async def update(self, id: int, **kwargs):
         try:
-            item = self.get(id)
+            item = await self.get(id)
             for key, value in kwargs.items():
                 setattr(item, key, value)
-            self.db.commit()
-            self.db.refresh(item)
+            await self.db.commit()
+            await self.db.refresh(item)
             return item
         except ItemNotFoundException:
             raise
@@ -88,15 +88,15 @@ class BaseCRUD(CRUDInterface):
             logger.error(f"Error updating item: {e}")
             raise DatabaseException("Error updating item.")
 
-    def delete(self, id: int):
+    async def delete(self, id: int):
         try:
-            item = self.get(id)
-            self.db.delete(item)
-            self.db.commit()
+            item = await self.get(id)
+            await self.db.delete(item)
+            await self.db.commit()
         except ItemNotFoundException:
             raise
         except SQLAlchemyError as e:
-            self.db.rollback()
+            await self.db.rollback()
             logger.error(f"Error deleting item: {e}")
             raise DatabaseException("Error deleting item.")
 
@@ -105,20 +105,20 @@ class ProjectCRUD(BaseCRUD):
     def __init__(self, db: AsyncSession):
         super().__init__(db, Project)
     
-    def create(self, project: ProjectCreate):
-        return super().create(**project.model_dump())
+    async def create(self, project: ProjectCreate):
+        return await super().create(**project.model_dump())
     
-    def get(self, id: int):
-        return super().get(id)
+    async def get(self, id: int):
+        return await super().get(id)
     
     async def get_all(self):
         return await super().get_all()
     
-    def update(self, id: int, project: ProjectCreate):
-        return super().update(id, **project.model_dump())
+    async def update(self, id: int, project: ProjectCreate):
+        return await super().update(id, **project.model_dump())
     
-    def delete(self, id: int):
-        return super().delete(id)
+    async def delete(self, id: int):
+        return await super().delete(id)
 
 
 class TicketCRUD(BaseCRUD):
