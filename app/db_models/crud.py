@@ -142,8 +142,8 @@ class KanbanBoardCRUD(BaseCRUD):
     def __init__(self, db: Session):
         super().__init__(db, KanbanBoard)
         
-    def create(self, kandbanboard: KanbanBoardCreate):
-        return super().create(**kandbanboard.model_dump())
+    def create(self, kanbanboard: KanbanBoardCreate):
+        return super().create(**kanbanboard.model_dump())
     
     def get(self, id: int):
         return super().get(id)
