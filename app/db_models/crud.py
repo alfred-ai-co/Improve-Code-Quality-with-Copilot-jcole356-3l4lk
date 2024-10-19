@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 import logging
 
 from app.db_models.base import *
+from app.api_models.tickets import TicketCreate
 from app.api.errors.exceptions import ItemNotFoundException, DatabaseException
 
 logger = logging.getLogger(__name__)
@@ -118,8 +119,8 @@ class TicketCRUD(BaseCRUD):
     def __init__(self, db: Session):
         super().__init__(db, Ticket)
     
-    def create(self, project_id: int, title: str, description: str, status: str, priority: str, kanban_status_id: int):
-        return super().create(project_id=project_id, title=title, description=description, status=status, priority=priority, kanban_status_id=kanban_status_id)
+    def create(self, ticket: TicketCreate):
+        return super().create(**ticket.model_dump())
     
     def get(self, id: int):
         return super().get(id)

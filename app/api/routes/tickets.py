@@ -13,7 +13,7 @@ router = APIRouter()
 @router.post("/", status_code=201, response_model=TicketResponse)
 def create_ticket(ticket: TicketCreate, db: Session = Depends(get_db)):
     ticket_crud = TicketCRUD(db)
-    return ticket_crud.create(**ticket.model_dump())
+    return ticket_crud.create(ticket)
 
 
 @router.get("/", status_code=200, response_model=list[TicketResponse])
