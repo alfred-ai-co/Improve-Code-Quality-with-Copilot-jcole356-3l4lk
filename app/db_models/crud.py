@@ -57,7 +57,7 @@ class BaseCRUD(CRUDInterface):
 
     async def get(self, id: int):
         try:
-            result = await self.db.execute(select(self.model).filter(self.model.id == id))
+            result = await self.db.execute(select(self.model).filter(self.model.id == id).with_for_update())
             return result.scalars().first()
         except NoResultFound:
             raise HTTPException(status_code=404, detail=f"Item with id {id} not found.")
