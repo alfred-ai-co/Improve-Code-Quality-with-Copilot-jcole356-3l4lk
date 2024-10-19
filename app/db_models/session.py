@@ -6,7 +6,9 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATABASE_URL = f"sqlite+aiosqlite:///{os.path.join(BASE_DIR, 'project_management.db')}"
 
-engine = create_async_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(DATABASE_URL, echo=True, execution_options={
+    "isolation_level": "SERIALIZABLE"
+})
 
 SessionLocal = sessionmaker(
     bind=engine,

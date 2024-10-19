@@ -1,8 +1,9 @@
+from dotenv import load_dotenv, find_dotenv
 from fastapi import FastAPI
 from loguru import logger
-from typing import Callable, Optional
 from sqlalchemy.orm import Session
-from dotenv import load_dotenv, find_dotenv
+from sqlalchemy.sql import text
+from typing import Callable, Optional
 import os
 
 from app.db_models.base import *
