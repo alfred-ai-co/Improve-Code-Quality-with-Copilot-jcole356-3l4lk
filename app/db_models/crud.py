@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 import logging
 
 from app.db_models.base import *
+from app.api.errors.http_error import HTTPException
 from app.api_models.kanbanboard import KanbanBoardCreate, KanbanBoardUpdate
 from app.api_models.kanbanstatus import KanbanStatusCreate, KanbanStatusUpdate
 from app.api_models.projects import ProjectCreate
@@ -57,8 +58,7 @@ class BaseCRUD(CRUDInterface):
             item = self.db.query(self.model).filter(self.model.id == id).one()
             return item
         except NoResultFound:
-            logger.error(f"Item with id {id} not found.")
-            raise ItemNotFoundException(id)
+            raise HTTPException(status_code=404, detail=f"Item with id {id} not found.")
         except SQLAlchemyError as e:
             logger.error(f"Error retrieving item: {e}")
             raise DatabaseException("Error retrieving item.")
