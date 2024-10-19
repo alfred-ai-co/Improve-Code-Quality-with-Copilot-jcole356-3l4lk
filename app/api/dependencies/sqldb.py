@@ -5,8 +5,8 @@ from app.db_models.session import SessionLocal
 
 # Dependency to get DB Session
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with SessionLocal() as db:
+    async with SessionLocal() as session:
       try:
-          yield db
+          yield session
       finally:
-          await db.close()
+          await session.close()
