@@ -1,11 +1,10 @@
 from fastapi import APIRouter, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
 
 from app.db_models.crud import TicketCRUD
 from app.api_models.tickets import TicketCreate, TicketResponse
 from app.db_models.session import get_db
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 router = APIRouter()
