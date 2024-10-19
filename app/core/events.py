@@ -3,10 +3,11 @@ from loguru import logger
 from typing import Callable, Optional
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv, find_dotenv
+import asyncio
 import os
 
 from app.db_models.base import *
-from app.db_models.session import engine, SessionLocal
+from app.db_models.session import get_db, engine
 
 def create_default_statuses(db: Session) -> None:
     statuses = [
@@ -42,16 +43,22 @@ def create_start_app_handler(app: FastAPI) -> Callable:
         load_dotenv(find_dotenv())
         
         # Create tables
-        Base.metadata.create_all(bind=engine)
+        # Base.metadata.create_all(bind=engine)
+
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+
+        # asyncio.run(init_models())
         
         # Create a new session
-        session = SessionLocal()
+        session = get_db()
         
         # Create default Kanban Board and Statuses
         create_kanban_defaults(session, os.getenv('CREATE_DEFAULTS'))
         
         # Close session
-        session.close()
+        session.aclose()
         
     return start_app
 

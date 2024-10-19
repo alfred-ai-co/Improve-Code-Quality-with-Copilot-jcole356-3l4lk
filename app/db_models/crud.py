@@ -1,5 +1,7 @@
-from sqlalchemy.orm import Session
+# from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError, NoResultFound
+from sqlalchemy.future import select
 from abc import ABC, abstractmethod
 import logging
 
@@ -37,7 +39,7 @@ class CRUDInterface(ABC):
 
 class BaseCRUD(CRUDInterface):
     """Base CRUD class for all models"""
-    def __init__(self, db: Session, model=None):
+    def __init__(self, db: AsyncSession, model=None):
         self.db = db
         self.model = model
     
@@ -63,9 +65,10 @@ class BaseCRUD(CRUDInterface):
             logger.error(f"Error retrieving item: {e}")
             raise DatabaseException("Error retrieving item.")
 
-    def get_all(self):
+    async def get_all(self):
         try:
-            return self.db.query(self.model).all()
+            result = await self.db.execute(select(self.model))
+            return result.scalars().all()
         except SQLAlchemyError as e:
             logger.error(f"Error retrieving items: {e}")
             raise DatabaseException("Error retrieving items.")
@@ -99,7 +102,7 @@ class BaseCRUD(CRUDInterface):
 
 
 class ProjectCRUD(BaseCRUD):
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         super().__init__(db, Project)
     
     def create(self, project: ProjectCreate):
@@ -108,8 +111,8 @@ class ProjectCRUD(BaseCRUD):
     def get(self, id: int):
         return super().get(id)
     
-    def get_all(self):
-        return super().get_all()
+    async def get_all(self):
+        return await super().get_all()
     
     def update(self, id: int, project: ProjectCreate):
         return super().update(id, **project.model_dump())
@@ -119,7 +122,7 @@ class ProjectCRUD(BaseCRUD):
 
 
 class TicketCRUD(BaseCRUD):
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         super().__init__(db, Ticket)
     
     def create(self, ticket: TicketCreate):
@@ -139,7 +142,7 @@ class TicketCRUD(BaseCRUD):
 
 
 class KanbanBoardCRUD(BaseCRUD):
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         super().__init__(db, KanbanBoard)
         
     def create(self, kanbanboard: KanbanBoardCreate):
@@ -159,7 +162,7 @@ class KanbanBoardCRUD(BaseCRUD):
 
 
 class KanbanStatusCRUD(BaseCRUD):
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         super().__init__(db, KanbanStatus)
     
     def create(self, kanbanstatus: KanbanStatusCreate):

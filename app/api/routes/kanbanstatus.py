@@ -4,7 +4,7 @@ from fastapi import Depends
 
 from app.db_models.crud import KanbanStatusCRUD
 from app.api_models.kanbanstatus import KanbanStatusCreate, KanbanStatusResponse, KanbanStatusUpdate
-from app.api.dependencies.sqldb import get_db
+from app.db_models.session import get_db
 
 
 router = APIRouter()
