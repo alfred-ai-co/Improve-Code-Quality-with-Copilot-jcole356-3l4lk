@@ -125,20 +125,20 @@ class TicketCRUD(BaseCRUD):
     def __init__(self, db: AsyncSession):
         super().__init__(db, Ticket)
     
-    def create(self, ticket: TicketCreate):
-        return super().create(**ticket.model_dump())
+    async def create(self, ticket: TicketCreate):
+        return await super().create(**ticket.model_dump())
     
-    def get(self, id: int):
-        return super().get(id)
+    async def get(self, id: int):
+        return await super().get(id)
     
-    def get_all(self):
-        return super().get_all()
+    async def get_all(self):
+        return await super().get_all()
     
-    def update(self, id: int, ticket: TicketCreate):
-        return super().update(id, **ticket.model_dump())
+    async def update(self, id: int, ticket: TicketCreate):
+        return await super().update(id, **ticket.model_dump())
     
-    def delete(self, id: int):
-        return super().delete(id)
+    async def delete(self, id: int):
+        return await super().delete(id)
 
 
 class KanbanBoardCRUD(BaseCRUD):
