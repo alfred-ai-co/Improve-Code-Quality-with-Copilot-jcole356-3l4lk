@@ -34,7 +34,7 @@ def get_ticket(id: int, db: Session = Depends(get_db)):
 @router.put("/{id}", status_code=200, response_model=TicketResponse)
 def update_ticket(id: int, ticket: TicketCreate, db: Session = Depends(get_db)):
     ticket_crud = TicketCRUD(db)
-    ticket_crud.update(id, **ticket.model_dump())
+    ticket_crud.update(id, ticket)
     return ticket_crud.get(id)
 
 

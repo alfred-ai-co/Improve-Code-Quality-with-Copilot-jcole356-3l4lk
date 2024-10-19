@@ -128,8 +128,8 @@ class TicketCRUD(BaseCRUD):
     def get_all(self):
         return super().get_all()
     
-    def update(self, id: int, project_id: int, title: str, description: str, status: str, priority: str, kanban_status_id: int):
-        return super().update(id, project_id=project_id, title=title, description=description, status=status, priority=priority, kanban_status_id=kanban_status_id)
+    def update(self, id: int, ticket: TicketCreate):
+        return super().update(id, **ticket.model_dump())
     
     def delete(self, id: int):
         return super().delete(id)
