@@ -3,11 +3,11 @@ from loguru import logger
 from typing import Callable, Optional
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv, find_dotenv
-import asyncio
 import os
 
 from app.db_models.base import *
-from app.db_models.session import get_db, engine
+from app.api.dependencies.sqldb import get_db
+from app.db_models.session import engine
 
 def create_default_statuses(db: Session) -> None:
     statuses = [

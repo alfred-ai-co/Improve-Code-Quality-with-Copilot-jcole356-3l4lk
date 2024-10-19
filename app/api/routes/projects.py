@@ -6,7 +6,7 @@ from fastapi import Depends
 
 from app.db_models.crud import ProjectCRUD
 from app.api_models.projects import ProjectCreate, ProjectResponse
-from app.db_models.session import get_db
+from app.api.dependencies.sqldb import get_db
 
 
 
