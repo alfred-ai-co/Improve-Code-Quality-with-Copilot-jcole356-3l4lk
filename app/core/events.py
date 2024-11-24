@@ -27,6 +27,9 @@ def create_default_board(db: Session) -> None:
     db.refresh(board)
 
 def create_kanban_defaults(db: Session, create_defaults: Optional[str] = True) -> None:
+    if create_defaults is None:
+        logger.info("No CREATE_DEFAULTS env variable set, not creating default Kanban Board and Statuses")
+        return
     if create_defaults.lower() == 'true':
         logger.info("Creating default Kanban Board and Statuses")
         logger.info("To set off, add env variable CREATE_DEFAULTS=False")
